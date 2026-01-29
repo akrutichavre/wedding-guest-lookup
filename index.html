@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Akruti & Ravi Wedding Guest Lookup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Google Fonts for wedding vibes -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cormorant Garamond', 'Segoe UI', Arial, serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #fbeff8 100%);
+            margin: 0;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 430px;
+            margin: 60px auto;
+            background: rgba(255,255,255,0.97);
+            border-radius: 22px;
+            box-shadow: 0 8px 32px rgba(180, 120, 180, 0.13), 0 2px 8px rgba(99,102,241,0.08);
+            padding: 38px 30px 28px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1.5px solid #f7c8d4;
+        }
+        h1 {
+            font-family: 'Dancing Script', cursive, serif;
+            font-size: 2.3em;
+            margin-bottom: 0.1em;
+            color: #b980a9;
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-shadow: 0 2px 8px #fbeff8;
+        }
+        .subtitle {
+            color: #b980a9;
+            font-size: 1.18em;
+            margin-bottom: 1.7em;
+            font-family: 'Cormorant Garamond', serif;
+            letter-spacing: 0.5px;
+        }
+        input[type="text"] {
+            padding: 15px 16px;
+            border: 1.5px solid #e9b6d1;
+            border-radius: 10px;
+            margin: 0 0 16px 0;
+            width: 100%;
+            font-size: 1.18em;
+            box-sizing: border-box;
+            transition: border 0.2s, box-shadow 0.2s;
+            background: #fdf6fa;
+        }
+        input[type="text"]:focus {
+            border: 2px solid #b980a9;
+            outline: none;
+            box-shadow: 0 0 0 2px #fbeff8;
+        }
+        button {
+            background: linear-gradient(90deg, #b980a9 0%, #f7c8d4 100%);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 0;
+            width: 100%;
+            font-size: 1.18em;
+            cursor: pointer;
+            margin-bottom: 14px;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 8px #fbeff8;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            background: linear-gradient(90deg, #f7c8d4 0%, #b980a9 100%);
+            box-shadow: 0 4px 16px #fbeff8;
+        }
+        #result {
+            margin-top: 28px;
+            text-align: left;
+        }
+        .guest-card {
+            background: linear-gradient(120deg, #fff6fa 0%, #fbeff8 100%);
+            border-radius: 14px;
+            padding: 20px 20px 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px #fbeff8;
+            font-size: 1.13em;
+            border: 1.2px solid #f7c8d4;
+            position: relative;
+        }
+        .guest-card b {
+            color: #b980a9;
+            font-weight: 600;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 14px 2vw; }
+            input[type="text"] { width: 100%; margin-bottom: 12px; }
+            button { width: 100%; }
+            .guest-card { font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Akruti & Ravi</h1>
+        <div class="subtitle">Wedding Guest Lookup</div>
+        <input type="text" id="guestName" name="guestName" placeholder="Enter guest name...">
+        <button onclick="lookupGuest()">Search</button>
+        <div id="result"></div>
+    </div>
+    <script>
+    let guestData = [];
+
+    const baseSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjBwqTn0t6tfoHcvQtoXVIf401BSUtD9jixDn9rTMCl_OfqhNBRufwPAbNkJs6u-kycNzzRr3mYSzO/pub?output=csv";
+    const csvUrl = "https://corsproxy.io/?" + encodeURIComponent(baseSheetUrl + "&cachebust=" + Date.now());
+
+    function parseCSV(text) {
+        const lines = text.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        return lines.slice(1).map(line => {
+            // Split by comma, but ignore commas inside quotes
+            const values = line.match(/(\"[^\"]*\"|[^,])+/g).map(v => v.replace(/^\"|\"$/g, '').trim());
+            let obj = {};
+            headers.forEach((h, i) => obj[h] = values[i] ? values[i] : "");
+            return obj;
+        });
+    }
+
+    // Fetch and parse CSV on page load
+    fetch(csvUrl)
+        .then(response => response.text())
+        .then(text => {
+            guestData = parseCSV(text);
+        });
+
+    function normalize(str) {
+        return (str || "")
+            .toLowerCase()
+            .replace(/['\"“”‘’]/g, "") // remove quotes
+            .replace(/\s+/g, " ")      // collapse multiple spaces
+            .trim();
+    }
+
+    function lookupGuest() {
+        const name = normalize(document.getElementById('guestName').value);
+        // Find all guests whose name includes the input (partial match)
+        const matches = guestData.filter(g => normalize(g.GuestName).includes(name));
+        const resultDiv = document.getElementById('result');
+        if (matches.length === 0) {
+            resultDiv.innerText = 'Guest not found';
+        } else {
+            resultDiv.innerHTML = matches.map(guest => `
+                <div class="guest-card">
+                    <b>Resort Name:</b> ${guest.ResortName || ''}<br>
+                    <b>Room Number:</b> ${guest.RoomNo || ''}<br>
+                    <b>Arrival Time:</b> ${guest.ArrivalTime || ''}<br>
+                    <b>Departure Time:</b> ${guest.DepartureTime || ''}<br>
+                    <b>Mode of Transport:</b> ${guest.Mode || ''}<br>
+                    <b>Mode Number:</b> ${guest.ModeID || ''}
+                </div>
+            `).join('');
+        }
+    }
+    </script>
+</body>
+</html>
