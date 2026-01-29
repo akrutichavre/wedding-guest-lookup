@@ -115,7 +115,7 @@
     let guestData = [];
 
     const baseSheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSjBwqTn0t6tfoHcvQtoXVIf401BSUtD9jixDn9rTMCl_OfqhNBRufwPAbNkJs6u-kycNzzRr3mYSzO/pub?output=csv";
-    const csvUrl = "https://corsproxy.io/?" + encodeURIComponent(baseSheetUrl + "&cachebust=" + Date.now());
+    const csvUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(baseSheetUrl + "&cachebust=" + Date.now());
 
     function parseCSV(text) {
         const lines = text.trim().split('\n');
